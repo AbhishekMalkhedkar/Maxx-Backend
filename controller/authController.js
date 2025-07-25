@@ -46,7 +46,7 @@ export const login = async (req,res) => {
     try {
         const {email, password} = req.body;
         const user = await User.findOne({email});
-        console.log(user);
+        
         
         if(!user){
             return res.status(404).json({ message : "User Not Found!"});
@@ -80,5 +80,35 @@ export const logout = async (req,res) => {
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message : `Logout Error ${error}`})
+    }
+}
+
+export const googleLogin = async (req, res) => {
+    try {
+        const {name, email} = req.body;
+
+        const user = await User.findOne({email});
+        
+        
+        if(!user){
+            user = await User.create({
+                name, email 
+            })
+        }
+        
+
+        const token = genToken(user._id);
+        res.cookie("token", token,{
+            httpOnly : true,
+            secure : false,
+            sameSite : "Strict",
+            maxAge : 7 * 24 * 60 * 60 * 1000
+        });
+
+        return res.status(200).json(user);
+
+    } catch (error) {
+        console.log("Google Login Error");
+        return res.status(500).json({ message : `Google Login Error ${error}`})
     }
 }
